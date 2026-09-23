@@ -25,10 +25,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-local-key")
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = os.environ.get(
-    "ALLOWED_HOSTS", "127.0.0.1,localhost"
-).split(",")
-
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+    if host.strip()
+]
 
 # Application definition
 
@@ -39,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cloudinary_storage',
+    'cloudinary',
     'corsheaders',
     'rest_framework',
     'django_filters',
@@ -162,3 +165,32 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 8,
 }
+
+USE_CLOUDINARY = os.environ.get("USE_CLOUDINARY", "False") == "True"
+
+if USE_CLOUDINARY:
+    CLOUDINARY_STORAGE = {
+        "CLOUD_NAME": os.environ.get("CLOUDINARY_CLOUD_NAME"),
+        "API_KEY": os.environ.get("CLOUDINARY_API_KEY"),
+        "API_SECRET": os.environ.get("CLOUDINARY_API_SECRET"),
+    }
+
+    if USE_CLOUDINARY:
+     DEFAULT_MEDIA_BACKEND = (
+        "cloudinary_storage.storage.MediaCloudinaryStorage"
+    )
+else:
+    DEFAULT_MEDIA_BACKEND = (
+        "django.core.files.storage.FileSystemStorage"
+    )
+
+STORAGES = {
+    "default": {
+        "BACKEND": DEFAULT_MEDIA_BACKEND,
+    },
+    "staticfiles": {
+        "BACKEND": (
+            "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        ),
+    },
+}   
