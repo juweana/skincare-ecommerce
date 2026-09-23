@@ -1,12 +1,17 @@
+from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets, generics
-from .models import Category, Product
-from .serializers import CategorySerializer, ProductSerializer, OrderSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Category, Product, Order, OrderItem
+from .serializers import CategorySerializer, ProductSerializer, OrderSerializer
 
 
+# 1. Define your pagination class first
+class StandardResultSetPagination(PageNumberPagination):
+    page_size = 12                  # Items per page by default
+    page_size_query_param = 'page_size'  # Allows frontend to change it via ?page_size=20
+    max_page_size = 48
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
@@ -25,9 +30,13 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_fields = ["category"]
     search_fields = ["name"]
     ordering_fields = ["price", "created_at"]
+    # 2. Use the exact matching class name here:
+    pagination_class = StandardResultSetPagination
+
 
 class OrderCreateView(generics.CreateAPIView):
     serializer_class = OrderSerializer
+
 
 class DashboardCountsView(APIView):
     def get(self, request):
